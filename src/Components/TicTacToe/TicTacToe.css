@@ -11,6 +11,15 @@
     align-items: center;
 }
 
+.game-status{
+    color: yellow;
+    font-size: 40px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    display: flex;
+    justify-content: center;
+}
+
 .reset{
     width: 250px;
     height: 100px;

@@ -2,115 +2,130 @@ import './App.css';
 import TicTacToe from './Components/TicTacToe/TicTacToe.jsx';
 import croix from "./Assets/croix.png"
 import rond from "./Assets/rond.png"
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRef } from 'react';
-
-let data = ["","","","","","","","",""];
+import axios from 'axios';
 
 function App() {
 
-  let [count, setCount] = useState(0);
-  let [lock, setLock] = useState(false);
+  const [gameId, setGameId] = useState(null);
+  const [currentPlayer, setCurrentPlayer] = useState('X');
+  const [board, setBoard] = useState(Array(9).fill(""));
+  const [gameStatus, setGameStatus] = useState('En cours');
+
+  useEffect(() => {
+    resetGame();
+  }
+  , []);
+
+  useEffect(() => {
+  if (gameId !== null) {
+    console.log("Prêt à jouer avec gameId:", gameId);
+  }
+  }, [gameId]); 
+
+
+  // Fonction pour jouer un coup et mettre à jour l'état du jeu
+  const playMove = async (index) => {
+  console.log("Tentative de jouer le coup", { gameId, index, currentPlayer, boardState: board });
+  
+  if ((board[index] === "" || board[index] === " ") && gameStatus === 'En cours') {
+    try {
+      console.log("Envoi du mouvement avec gameId:", gameId);
+      const response = await axios.post('http://localhost:8080/api/game/playMove', {
+        gameId,
+        index,
+        player: currentPlayer
+      });
+
+      console.log("Réponse de l'API", response.data);
+      
+      const updatedGame = response.data;
+      setBoard(updatedGame.board.split(""));
+      setCurrentPlayer(updatedGame.currentPlayer);
+      setGameStatus(updatedGame.status);
+
+    } catch (error) {
+      console.error('There was an error playing the move:', error);
+    }
+  } else {
+    console.log("Le coup n'a pas été joué - Condition non remplie", {boardCase: board[index], gameStatus});
+  }
+  };
+
+
+  const checkVictory = async () => {
+    const response = await axios.get(`http://localhost:8080/api/game/checkVictory/${gameId}`);
+    const result = response.data;
+    if (result !== 'Game continues') {
+      setGameStatus(result);
+    } else {
+      // Alterner le joueur
+      setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X');
+    }
+  };
+
+
+  // Fonction pour initialiser ou réinitialiser le jeu
+  const resetGame = async () => {
+    try {
+      const response = await axios.post('http://localhost:8080/api/game/newGame', {
+        currentPlayer: "X",
+        status: "En cours"
+      });
+      // Initialiser l'état du jeu avec la nouvelle partie
+      const newGame = response.data;
+      console.log("Réponse complète de la création du jeu :", response.data); // pas de reponse postman
+      console.log("Jeu créé avec l'ID:", newGame.id);
+      setGameId(newGame.id);
+      setBoard(Array(9).fill('')); // Ou autre logique si l'API renvoie un état initial du tableau
+      setCurrentPlayer('X');
+      setGameStatus('En cours');
+    } catch (error) {
+      console.error('There was an error resetting the game:', error);
+    }
+  };
+  
   let titleRef = useRef(null);
-  let box1 = useRef(null);
-  let box2 = useRef(null);
-  let box3 = useRef(null);
-  let box4 = useRef(null);
-  let box5 = useRef(null);
-  let box6 = useRef(null);
-  let box7 = useRef(null);
-  let box8 = useRef(null);
-  let box9 = useRef(null);
-
-  let box_array = [box1,box2,box3,box4,box5,box6,box7,box8,box9];
-
-  const toggle = (e,num) => {
-    if(lock){
-      return 0; 
-    }
-    if(count%2 === 0){
-      e.target.innerHTML = `<img src='${croix}'/>`;
-      data[num] = "x";
-      setCount(++count);
-    }
-    else{
-      e.target.innerHTML = `<img src='${rond}'/>`;
-      data[num] = "o";
-      setCount(++count);
-    }
-    checkWin();
-  } 
-
-  const won = (winner) => {
-    setLock(true);
-    if(winner==="x"){
-      titleRef.current.innerHTML = `Congratulations: <img src=${croix}> Wins`;
-    }
-    else{
-      titleRef.current.innerHTML = `Congratulations: <img src=${rond}> Wins`;
-    }
-  }
-
-  const reset = () => {
-    setLock(false);
-    data = ["","","","","","","","",""];
-    titleRef.current.innerHTML = `Tic Tac Toe Game`;
-    box_array.map((e)=>{
-      e.current.innerHTML = "";
-    })
-  }
-
-  const checkWin= () => {
-    if(data[0] === data[1] && data[1] === data[2] && data[2] !== ""){
-      won(data[0]);
-    }
-    else if(data[3] === data[4] && data[4] === data[5] && data[5] !== ""){
-      won(data[5]);
-    }
-    else if(data[6] === data[7] && data[7] === data[8] && data[8] !== ""){
-      won(data[8]);
-    }
-    else if(data[0] === data[3] && data[3] === data[6] && data[6] !== ""){
-      won(data[6]);
-    }
-    else if(data[1] === data[4] && data[4] === data[7] && data[7] !== ""){
-      won(data[7]);
-    }
-    else if(data[2] === data[5] && data[5] === data[8] && data[8] !== ""){
-      won(data[8]);
-    }
-    else if(data[0] === data[4] && data[4] === data[8] && data[8] !== ""){
-      won(data[8]);
-    }
-    else if(data[0] === data[1] && data[1] === data[2] && data[2] !== ""){
-      won(data[2]);
-    }
-    else if(data[2] === data[4] && data[4] === data[6] && data[6] !== ""){
-      won(data[6]);
-    }
-  }
-
+  
   return (
     <div className='container'>
       <h1 className='title' ref={titleRef}>Tic Tac Toe Game</h1>
+
+      {/* Afficher le statut du jeu ou le gagnant ici */}
+      {gameStatus !== 'En cours' && (
+        <div className="game-status">
+          {gameStatus === 'X wins' ? 'Le joueur X a gagné !' : gameStatus === 'O wins' ? 'Le joueur O a gagné !' : 'Match nul !'}
+        </div>
+      )}
+
       <div className='board'>
         <div className='row1'>
-          <div className='boxes' ref={box1} onClick={(e)=>{toggle(e,0)}}></div>
-          <div className='boxes' ref={box2} onClick={(e)=>{toggle(e,1)}}></div>
-          <div className='boxes' ref={box3} onClick={(e)=>{toggle(e,2)}}></div>
+          <div className='boxes' onClick={()=>playMove(0)}>{board[0] === 'X' && <img src={croix} alt="X" />}
+  {board[0] === 'O' && <img src={rond} alt="O" />}</div>
+          <div className='boxes' onClick={()=>playMove(1)}>{board[1] === 'X' && <img src={croix} alt="X" />}
+  {board[1] === 'O' && <img src={rond} alt="O" />}</div>
+          <div className='boxes' onClick={()=>playMove(2)}>{board[2] === 'X' && <img src={croix} alt="X" />}
+  {board[2] === 'O' && <img src={rond} alt="O" />}</div>
         </div>
         <div className='row2 '>
-          <div className='boxes' ref={box4} onClick={(e)=>{toggle(e,3)}}></div>
-          <div className='boxes' ref={box5} onClick={(e)=>{toggle(e,4)}}></div>
-          <div className='boxes' ref={box6} onClick={(e)=>{toggle(e,5)}}></div>
+          <div className='boxes' onClick={()=>playMove(3)}>{board[3] === 'X' && <img src={croix} alt="X" />}
+  {board[3] === 'O' && <img src={rond} alt="O" />}</div>
+          <div className='boxes' onClick={()=>playMove(4)}>{board[4] === 'X' && <img src={croix} alt="X" />}
+  {board[4] === 'O' && <img src={rond} alt="O" />}</div>
+          <div className='boxes' onClick={()=>playMove(5)}>{board[5] === 'X' && <img src={croix} alt="X" />}
+  {board[5] === 'O' && <img src={rond} alt="O" />}</div>
         </div>
         <div className='row3 '>
-          <div className='boxes' ref={box7} onClick={(e)=>{toggle(e,6)}}></div>
-          <div className='boxes' ref={box8} onClick={(e)=>{toggle(e,7)}}></div>
-          <div className='boxes' ref={box9} onClick={(e)=>{toggle(e,8)}}></div>
+          <div className='boxes' onClick={()=>playMove(6)}>{board[6] === 'X' && <img src={croix} alt="X" />}
+  {board[6] === 'O' && <img src={rond} alt="O" />}</div>
+          <div className='boxes' onClick={()=>playMove(7)}>{board[7] === 'X' && <img src={croix} alt="X" />}
+  {board[7] === 'O' && <img src={rond} alt="O" />}</div>
+          <div className='boxes' onClick={()=>playMove(8)}>{board[8] === 'X' && <img src={croix} alt="X" />}
+  {board[8] === 'O' && <img src={rond} alt="O" />}</div>
         </div>
       </div>
-      <button className='reset' onClick={()=>{reset()}}>Reset</button>
+      <button className='reset' onClick={()=>{resetGame()}}>Reset</button>
     </div>
   );
 }
