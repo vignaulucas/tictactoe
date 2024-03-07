@@ -11,7 +11,8 @@ function App() {
   const [gameId, setGameId] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState('X');
   const [board, setBoard] = useState(Array(9).fill(""));
-  const [gameStatus, setGameStatus] = useState('En cours');
+  const [gameStatus, setGameStatus] = useState('En cours'); 
+
 
   useEffect(() => {
     resetGame();
@@ -23,6 +24,7 @@ function App() {
     console.log("Prêt à jouer avec gameId:", gameId);
   }
   }, [gameId]); 
+
 
 
   // Fonction pour jouer un coup et mettre à jour l'état du jeu
