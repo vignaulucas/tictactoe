@@ -12,6 +12,7 @@ function App() {
   const [currentPlayer, setCurrentPlayer] = useState('X');
   const [board, setBoard] = useState(Array(9).fill(""));
   const [gameStatus, setGameStatus] = useState('En cours'); 
+  const [timeLeft, setTimeLeft] = useState(30); 
 
 
   useEffect(() => {
@@ -25,6 +26,35 @@ function App() {
   }
   }, [gameId]); 
 
+  useEffect(() => {
+  if (timeLeft > 0) {
+    const timerId = setTimeout(() => {
+      setTimeLeft(timeLeft - 1);
+    }, 1000);
+    return () => clearTimeout(timerId);
+  } else {
+    // Passe le tour automatiquement
+    passTurn();
+  }
+}, [timeLeft, currentPlayer]); 
+
+const passTurn = async () => {
+  try {
+    // Appel API pour changer le joueur courant
+    const response = await axios.get(`http://localhost:8080/api/game/changePlayer/${gameId}`);
+    const updatedGame = response.data;
+
+    // Mettre à jour l'état avec les nouvelles informations du jeu
+    setCurrentPlayer(updatedGame.currentPlayer);
+    setBoard(updatedGame.board.split(""));
+    setGameStatus(updatedGame.status);
+
+    // Réinitialiser le chrono pour le nouveau joueur
+    setTimeLeft(30);
+  } catch (error) {
+    console.error('Erreur lors du changement de joueur:', error);
+  }
+};
 
 
   // Fonction pour jouer un coup et mettre à jour l'état du jeu
@@ -39,6 +69,9 @@ function App() {
         index,
         player: currentPlayer
       });
+
+      // Réinitialiser le chrono pour le nouveau joueur
+      setTimeLeft(30);
 
       console.log("Réponse de l'API", response.data);
       
@@ -100,6 +133,8 @@ function App() {
           {gameStatus === 'X wins' ? 'Le joueur X a gagné !' : gameStatus === 'O wins' ? 'Le joueur O a gagné !' : 'Match nul !'}
         </div>
       )}
+
+      <div className="time">Temps restant : {timeLeft} secondes</div>
 
       <div className='board'>
         <div className='row1'>
