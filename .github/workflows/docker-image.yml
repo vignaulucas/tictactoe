@@ -25,4 +25,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/IMAGE_NAME:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/tic_tac_toe:latest
