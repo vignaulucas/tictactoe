@@ -1,11 +1,15 @@
-FROM openjdk:latest
-
-ENV JAR_FILE=target/tic_tac_toe.jar
+FROM node:latest
 
 WORKDIR /usr/app
 
-COPY ${JAR_FILE} app.jar
+COPY . .
 
-EXPOSE 8080
+RUN npm install
 
-CMD ["java", "-jar", "app.jar"]
+RUN npm install -g serve
+
+RUN npm run build
+
+EXPOSE 3000
+
+CMD ["server", "-s", "build"]
