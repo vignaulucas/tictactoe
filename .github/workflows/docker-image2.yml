@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-and-test:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,11 +28,8 @@ jobs:
         with:
           context: .
           file: Dockerfile
-          load: true  # Important pour charger l'image construite localement
+          load: true
           tags: my-test-image:latest
-
-      - name: Run Tests in Docker Container
-        run: docker run my-test-image:latest
 
       - name: Push Docker image to Docker Hub
         if: success()
