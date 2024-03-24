@@ -41,7 +41,7 @@ function App() {
 const passTurn = async () => {
   try {
     // Appel API pour changer le joueur courant
-    const response = await axios.get(`https://tic-tac-toe-api-i0uw.onrender.com/api/game/changePlayer/${gameId}`);
+    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/game/changePlayer/${gameId}`);
     const updatedGame = response.data;
 
     // Mettre à jour l'état avec les nouvelles informations du jeu
@@ -64,7 +64,7 @@ const passTurn = async () => {
   if ((board[index] === "" || board[index] === " ") && gameStatus === 'En cours') {
     try {
       console.log("Envoi du mouvement avec gameId:", gameId);
-      const response = await axios.post('https://tic-tac-toe-api-i0uw.onrender.com/api/game/playMove', {
+      const response = await axios.post('${process.env.REACT_APP_API_URL}/api/game/playMove', {
         gameId,
         index,
         player: currentPlayer
@@ -90,7 +90,7 @@ const passTurn = async () => {
 
 
   const checkVictory = async () => {
-    const response = await axios.get(`https://tic-tac-toe-api-i0uw.onrender.com/api/game/checkVictory/${gameId}`);
+    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/game/checkVictory/${gameId}`);
     const result = response.data;
     if (result !== 'Game continues') {
       setGameStatus(result);
@@ -104,7 +104,7 @@ const passTurn = async () => {
   // Fonction pour initialiser ou réinitialiser le jeu
   const resetGame = async () => {
     try {
-      const response = await axios.post('https://tic-tac-toe-api-i0uw.onrender.com/api/game/newGame', {
+      const response = await axios.post('${process.env.REACT_APP_API_URL}/api/game/newGame', {
         currentPlayer: "X",
         status: "En cours"
       });
