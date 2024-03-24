@@ -64,7 +64,7 @@ const passTurn = async () => {
   if ((board[index] === "" || board[index] === " ") && gameStatus === 'En cours') {
     try {
       console.log("Envoi du mouvement avec gameId:", gameId);
-      const response = await axios.post('${process.env.REACT_APP_API_URL}/api/game/playMove', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/game/playMove`, {
         gameId,
         index,
         player: currentPlayer
@@ -104,7 +104,7 @@ const passTurn = async () => {
   // Fonction pour initialiser ou réinitialiser le jeu
   const resetGame = async () => {
     try {
-      const response = await axios.post('${process.env.REACT_APP_API_URL}/api/game/newGame', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/game/newGame`, {
         currentPlayer: "X",
         status: "En cours"
       });
